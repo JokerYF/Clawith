@@ -20,7 +20,7 @@ get_server_ip() {
 
 # --- Helper: detect China network (slow PyPI) ---
 IN_CHINA=false
-if ! curl -s --connect-timeout 2 -m 3 https://pypi.org >/dev/null 2>&1; then
+if ! curl -s --connect-timeout 1 -m 2 https://pypi.org >/dev/null 2>&1; then
     IN_CHINA=true
 fi
 PIP_MIRROR=""
@@ -28,6 +28,7 @@ NPM_MIRROR=""
 if [ "$IN_CHINA" = true ]; then
     PIP_MIRROR="-i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn"
     NPM_MIRROR="--registry https://registry.npmmirror.com"
+    echo -e "  ${CYAN}ℹ${NC}  Using China mirrors (Tsinghua PyPI + npmmirror)"
 fi
 
 echo ""
@@ -343,8 +344,8 @@ if [ ! -d ".venv" ]; then
     echo -e "  ${GREEN}✓${NC} Virtual environment created"
 fi
 
-echo "  Installing dependencies..."
-if .venv/bin/pip install -e ".[dev]" $PIP_MIRROR 2>&1 | tail -5; then
+echo "  Installing dependencies (this may take 1-3 minutes)..."
+if .venv/bin/pip install -e ".[dev]" $PIP_MIRROR 2>&1; then
     echo -e "  ${GREEN}✓${NC} Backend dependencies installed"
 else
     echo -e "  ${RED}✗${NC} Failed to install backend dependencies."
