@@ -387,18 +387,22 @@ async def _invoke_agent_for_triggers(agent_id: uuid.UUID, triggers: list[AgentTr
                 # Save to user's most recent web chat session for persistence
                 async with async_session() as db:
                     from app.models.chat_session import ChatSession
+                    from sqlalchemy import func, case
                     _sr = await db.execute(
                         select(ChatSession)
                         .where(
                             ChatSession.agent_id == agent_id,
                             ChatSession.user_id == agent.creator_id,
-                            ChatSession.source_channel != "trigger",
+                            ChatSession.source_channel.notin_(["trigger"]),
                         )
-                        .order_by(ChatSession.last_message_at.desc().nulls_last())
+                        .order_by(
+                            func.coalesce(ChatSession.last_message_at, ChatSession.created_at).desc()
+                        )
                         .limit(1)
                     )
                     web_session = _sr.scalar_one_or_none()
                     if web_session:
+                        logger.info(f"⚡ Saving trigger notification to web session {web_session.id} ({web_session.title})")
                         db.add(ChatMessage(
                             agent_id=agent_id,
                             conversation_id=str(web_session.id),
@@ -407,10 +411,12 @@ async def _invoke_agent_for_triggers(agent_id: uuid.UUID, triggers: list[AgentTr
                             user_id=agent.creator_id,
                         ))
                         await db.commit()
+                        logger.info(f"⚡ Trigger notification saved to web session successfully")
+                    else:
+                        logger.warning(f"⚡ No web session found for agent {agent.name} (creator={agent.creator_id})")
 
                 # Push to all active WebSocket connections for this agent
                 if agent_id_str in ws_manager.active_connections:
-                    import json as _ws_json
                     for ws in list(ws_manager.active_connections[agent_id_str]):
                         try:
                             await ws.send_json({
@@ -421,7 +427,9 @@ async def _invoke_agent_for_triggers(agent_id: uuid.UUID, triggers: list[AgentTr
                         except Exception:
                             pass  # Connection may have closed
             except Exception as e:
-                logger.warning(f"Failed to push trigger result to WebSocket: {e}")
+                logger.error(f"Failed to push trigger result to WebSocket: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Audit log
         await write_audit_log("trigger_fired", {
