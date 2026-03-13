@@ -25,3 +25,6 @@ ss-nodes.json
 .agents/
 _agent/
 _agents/
+
+# Internal docs
+docs/
