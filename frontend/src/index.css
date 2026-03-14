@@ -416,8 +416,19 @@ select:focus {
 }
 
 .sidebar-agent-item.owned .sidebar-item {
-  border-left: 2px solid var(--accent-primary);
-  margin-left: 2px;
+  background: var(--accent-subtle);
+}
+
+.sidebar-agent-item.owned .sidebar-item:hover {
+  background: rgba(225, 225, 232, 0.12);
+}
+
+[data-theme="light"] .sidebar-agent-item.owned .sidebar-item {
+  background: rgba(58, 58, 66, 0.05);
+}
+
+[data-theme="light"] .sidebar-agent-item.owned .sidebar-item:hover {
+  background: rgba(58, 58, 66, 0.1);
 }
 
 .sidebar-pin-btn {

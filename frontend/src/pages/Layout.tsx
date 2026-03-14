@@ -439,15 +439,13 @@ export default function Layout() {
                     {(() => {
                         const q = sidebarSearch.trim().toLowerCase();
                         const filterAgent = (a: any) => !q || (a.name || '').toLowerCase().includes(q) || (a.role_description || '').toLowerCase().includes(q);
-                        const sortAgents = (list: any[]) => [...list].sort((a, b) => {
+                        const sortedAgents = [...agents].filter(filterAgent).sort((a: any, b: any) => {
                             const ap = pinnedAgents.has(a.id) ? 1 : 0;
                             const bp = pinnedAgents.has(b.id) ? 1 : 0;
                             return bp - ap;
                         });
-                        const myAgents = sortAgents(agents.filter((a: any) => a.creator_id === user?.id).filter(filterAgent));
-                        const sharedAgents = sortAgents(agents.filter((a: any) => a.creator_id !== user?.id).filter(filterAgent));
-                        const renderAgent = (agent: any, isOwned = false) => (
-                            <div key={agent.id} style={{ position: 'relative' }} className={`sidebar-agent-item${isOwned ? ' owned' : ''}`}>
+                        const renderAgent = (agent: any) => (
+                            <div key={agent.id} style={{ position: 'relative' }} className={`sidebar-agent-item${agent.creator_id === user?.id ? ' owned' : ''}`}>
                                 <NavLink
                                     to={`/agents/${agent.id}`}
                                     className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
@@ -474,14 +472,13 @@ export default function Layout() {
                         );
                         return (
                             <>
-                                {myAgents.length > 0 && myAgents.map(a => renderAgent(a, true))}
-                                {sharedAgents.length > 0 && sharedAgents.map(a => renderAgent(a, false))}
+                                {sortedAgents.map(renderAgent)}
                                 {agents.length === 0 && (
                                     <div className="sidebar-section">
                                         <div className="sidebar-section-title">{t('nav.myAgents')}</div>
                                     </div>
                                 )}
-                                {agents.length > 0 && myAgents.length === 0 && sharedAgents.length === 0 && q && (
+                                {agents.length > 0 && sortedAgents.length === 0 && q && (
                                     <div style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--text-tertiary)', textAlign: 'center' }}>
                                         {isChinese ? '无匹配结果' : 'No matches'}
                                     </div>
