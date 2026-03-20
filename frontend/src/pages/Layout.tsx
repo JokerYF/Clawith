@@ -177,6 +177,21 @@ function AccountSettingsModal({ user, onClose, isChinese }: { user: any; onClose
     );
 }
 
+/* ────── Version Display (runtime) ────── */
+function VersionDisplay() {
+    const [info, setInfo] = useState<{ version?: string; commit?: string }>({});
+    useEffect(() => {
+        fetch('/api/version').then(r => r.json()).then(setInfo).catch(() => {});
+    }, []);
+    if (!info.version) return null;
+    return (
+        <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--text-quaternary)', marginTop: '8px', letterSpacing: '0.3px' }}>
+            v{info.version}
+            {info.commit && <span style={{ opacity: 0.6 }}> ({info.commit})</span>}
+        </div>
+    );
+}
+
 export default function Layout() {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
@@ -506,10 +521,7 @@ export default function Layout() {
                             </button>
                         </div>
                         {/* Version */}
-                        <div style={{ textAlign: 'center', fontSize: '10px', color: 'var(--text-quaternary)', marginTop: '8px', letterSpacing: '0.3px' }}>
-                            v{(typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '').split('+')[0]}
-                            <span style={{ opacity: 0.6 }}>{(typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '').includes('+') ? ` b${(typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '').split('+')[1]}` : ''}</span>
-                        </div>
+                        <VersionDisplay />
                     </div>
                 </div>
             </nav>
