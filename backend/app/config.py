@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
+    # Single Tenant Mode
+    SINGLE_TENANT_MODE: bool = False  # When True: disable public registration, all users join the same tenant
+
     # Jina AI (Reader + Search APIs)
     JINA_API_KEY: str = ""
 
